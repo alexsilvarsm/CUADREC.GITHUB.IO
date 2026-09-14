@@ -73,6 +73,37 @@ body{
   text-align:right;
   color-scheme:light;
 }
+.fecha-row select,
+.fecha-row input[type=text]{
+  background:transparent;
+  border:none;
+  color:var(--text);
+  font-family:var(--sans);
+  font-size:14px;
+  font-weight:600;
+  text-align:right;
+  max-width:64%;
+}
+.fecha-row select:focus,
+.fecha-row input[type=text]:focus{outline:none;}
+.required-mark{color:var(--accent);}
+.required-hint{
+  font-size:12px;
+  color:var(--accent);
+  background:var(--accent-dim);
+  border:1px solid rgba(217,72,31,0.3);
+  border-radius:10px;
+  padding:10px 12px;
+  margin:-6px 0 16px;
+  display:none;
+}
+.required-hint.show{display:block;}
+#formBody.locked{
+  opacity:0.35;
+  filter:grayscale(0.4);
+  pointer-events:none;
+  user-select:none;
+}
 
 /* Section card */
 .card{
@@ -441,9 +472,29 @@ body{
   </div>
 
   <div class="fecha-row">
-    <label for="fecha">Fecha de reporte</label>
+    <label for="fecha">Fecha de reporte <span class="required-mark">*</span></label>
     <input type="date" id="fecha">
   </div>
+
+  <div class="fecha-row">
+    <label for="chofer">Chófer <span class="required-mark">*</span></label>
+    <select id="chofer">
+      <option value="">Selecciona...</option>
+      <option value="CRISTIAN BRANDER CACHI QUIROZ">CRISTIAN BRANDER CACHI QUIROZ</option>
+      <option value="JORGE LUIS CHUQUIMANGO ALCALDE">JORGE LUIS CHUQUIMANGO ALCALDE</option>
+      <option value="ANIBAL LLAMOGA MESTANZA">ANIBAL LLAMOGA MESTANZA</option>
+      <option value="__otros__">Otros</option>
+    </select>
+  </div>
+
+  <div class="fecha-row" id="choferOtroRow" style="display:none;">
+    <label for="choferOtro">Nombre del chófer</label>
+    <input type="text" id="choferOtro" placeholder="Escribe el nombre">
+  </div>
+
+  <div class="required-hint" id="requiredHint">Completa la fecha y el chófer para habilitar el formulario.</div>
+
+  <div id="formBody">
 
   <div class="card">
     <div class="card-head"><div class="card-title">Resumen del día</div></div>
@@ -539,6 +590,8 @@ body{
     </div>
   </div>
 
+  </div>
+
 </div>
 
 <div class="toast" id="toast">Resumen copiado</div>
@@ -568,10 +621,14 @@ function saveState(){
     const fechaEl = document.getElementById('fecha');
     const contadoEl = document.getElementById('contado');
     const cobranzaEl = document.getElementById('cobranza');
+    const choferEl = document.getElementById('chofer');
+    const choferOtroEl = document.getElementById('choferOtro');
     const state = {
       fecha: fechaEl ? fechaEl.value : '',
       contado: contadoEl ? contadoEl.value : '',
       cobranza: cobranzaEl ? cobranzaEl.value : '',
+      chofer: choferEl ? choferEl.value : '',
+      choferOtro: choferOtroEl ? choferOtroEl.value : '',
       denom: denomState.map(r => r.cantidad || 0),
       lists: {},
     };
@@ -594,6 +651,15 @@ function loadState(){
     if (contadoEl && state.contado !== undefined) contadoEl.value = state.contado;
     const cobranzaEl = document.getElementById('cobranza');
     if (cobranzaEl && state.cobranza !== undefined) cobranzaEl.value = state.cobranza;
+    const choferEl = document.getElementById('chofer');
+    if (choferEl && state.chofer) {
+      choferEl.value = state.chofer;
+      if (state.chofer === '__otros__') {
+        document.getElementById('choferOtroRow').style.display = '';
+        const choferOtroEl = document.getElementById('choferOtro');
+        if (choferOtroEl && state.choferOtro) choferOtroEl.value = state.choferOtro;
+      }
+    }
 
     if (Array.isArray(state.denom)) {
       state.denom.forEach((c, i) => { if (denomState[i]) denomState[i].cantidad = parseFloat(c) || 0; });
@@ -848,7 +914,32 @@ function showToast(msg){
 /* ---------- Fecha default ---------- */
 const fechaInput = document.getElementById('fecha');
 if (!fechaInput.value) fechaInput.valueAsDate = new Date();
-fechaInput.addEventListener('input', saveState);
+fechaInput.addEventListener('input', () => { saveState(); checkRequired(); });
+
+/* ---------- Chófer (obligatorio, igual que la fecha) ---------- */
+const choferSelect = document.getElementById('chofer');
+const choferOtroRow = document.getElementById('choferOtroRow');
+const choferOtroInput = document.getElementById('choferOtro');
+
+function getChoferNombre(){
+  if (choferSelect.value === '__otros__') return choferOtroInput.value.trim();
+  return choferSelect.value;
+}
+
+function checkRequired(){
+  const ok = !!fechaInput.value && !!getChoferNombre();
+  document.getElementById('formBody').classList.toggle('locked', !ok);
+  document.getElementById('requiredHint').classList.toggle('show', !ok);
+  return ok;
+}
+
+choferSelect.addEventListener('change', () => {
+  choferOtroRow.style.display = choferSelect.value === '__otros__' ? '' : 'none';
+  if (choferSelect.value !== '__otros__') choferOtroInput.value = '';
+  saveState();
+  checkRequired();
+});
+choferOtroInput.addEventListener('input', () => { saveState(); checkRequired(); });
 
 function buildReportLines(){
   const fecha = fechaInput.value || '—';
@@ -859,6 +950,7 @@ function buildReportLines(){
 
   let lines = [];
   lines.push(`CUADRE DE CAJA — ${fecha}`);
+  lines.push(`Chófer: ${getChoferNombre() || '—'}`);
   lines.push('');
   lines.push(`+ Total reporte bruto: ${fmt(parseFloat(contado)||0)}`);
   lines.push(`+ Cobranza día: ${fmt(parseFloat(cobranza)||0)}`);
@@ -890,6 +982,11 @@ function renderPdfPage(lines){
   fechaEl.className = 'pp-fecha';
   fechaEl.textContent = `Fecha de reporte: ${fechaInput.value || '—'}`;
   container.appendChild(fechaEl);
+
+  const choferEl = document.createElement('div');
+  choferEl.className = 'pp-fecha';
+  choferEl.textContent = `Chófer: ${getChoferNombre() || '—'}`;
+  container.appendChild(choferEl);
 
   lines.forEach(line => {
     const div = document.createElement('div');
@@ -1201,6 +1298,8 @@ document.getElementById('pdfBtn').addEventListener('click', () => {
     y += 18;
     doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(...PDF_COL.textDim);
     doc.text(`Fecha de reporte: ${fechaInput.value || '—'}`, marginX, y);
+    y += 14;
+    doc.text(`Chófer: ${getChoferNombre() || '—'}`, marginX, y);
     y += 26;
 
     // datos vigentes
@@ -1285,7 +1384,7 @@ document.getElementById('pdfBtn').addEventListener('click', () => {
     currentPdfUrl = URL.createObjectURL(currentPdfBlob);
 
     // vista previa en HTML (siempre visible, no depende del visor de PDF del dispositivo)
-    const bodyLines = buildReportLines().slice(2);
+    const bodyLines = buildReportLines().slice(3);
     renderPdfPage(bodyLines);
 
     const dlLink = document.getElementById('pdfDownloadLink');
@@ -1295,6 +1394,11 @@ document.getElementById('pdfBtn').addEventListener('click', () => {
 
     document.getElementById('pdfPreview').classList.add('show');
     document.getElementById('pdfPreview').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    // intento de compartir directo, en un solo toque (sin descargar); si no es posible, queda la vista previa con los botones manuales
+    if (navigator.canShare) {
+      shareOrExplain(currentPdfBlob, filename, 'application/pdf', true);
+    }
   }catch(err){
     console.error(err);
     showToast('Ocurrió un error al generar el PDF');
@@ -1307,21 +1411,27 @@ document.getElementById('pdfCloseBtn').addEventListener('click', () => {
 
 document.getElementById('pdfShareBtn').addEventListener('click', async () => {
   if (!currentPdfBlob) return;
-  const filename = document.getElementById('pdfDownloadLink').dataset.filename || 'cuadre_caja.pdf';
-  const file = new File([currentPdfBlob], filename, { type: 'application/pdf' });
+  await shareOrExplain(currentPdfBlob, document.getElementById('pdfDownloadLink').dataset.filename || 'cuadre_caja.pdf', 'application/pdf');
+});
+
+/* Comparte un archivo con el panel nativo. Si no es posible, solo avisa (salvo modo silencioso) — nunca descarga en automático. */
+async function shareOrExplain(blob, filename, mimeType, silent){
+  const file = new File([blob], filename, { type: mimeType });
 
   if (navigator.canShare && navigator.canShare({ files: [file] })) {
     try{
       await navigator.share({ files: [file], title: 'Cuadre de Caja', text: 'Cuadre de caja del día' });
-      return;
+      return true;
     }catch(err){
-      if (err.name === 'AbortError') return; // el usuario canceló, no es un error
+      if (err.name === 'AbortError') return false; // el usuario canceló, no es un error
+      console.error(err);
+      if (!silent) showToast('No se pudo abrir el panel para compartir en este dispositivo. Usa "Descargar" y compártelo desde tus archivos.');
+      return false;
     }
   }
-  // si no hay soporte de Web Share con archivos, usar la descarga como respaldo
-  document.getElementById('pdfDownloadLink').click();
-  showToast('Descargado — compártelo desde tus archivos');
-});
+  if (!silent) showToast('Compartir no está disponible aquí. Usa "Descargar" y compártelo desde tus archivos.');
+  return false;
+}
 
 /* ---------- Imagen (dibujada con Canvas 2D, mismo estilo de tarjetas que el PDF) ---------- */
 let currentImgUrl = null;
@@ -1431,7 +1541,7 @@ document.getElementById('imgBtn').addEventListener('click', () => {
     }
     const netoLines = ['a', ...rubroLines2, 'b'];
 
-    let totalH = 70; // encabezado (título + fecha)
+    let totalH = 84; // encabezado (título + fecha + chófer)
     totalH += summaryHeight(summaryRows) + GAP;
     totalH += rechazosBlock.height + GAP;
     totalH += denomTableHeightVal + GAP;
@@ -1465,6 +1575,8 @@ document.getElementById('imgBtn').addEventListener('click', () => {
     ctx.font = FONT_BODY;
     ctx.fillStyle = rgbStr(PDF_COL.textDim);
     ctx.fillText(`Fecha de reporte: ${fechaInput.value || '—'}`, MX, y);
+    y += 14;
+    ctx.fillText(`Chófer: ${getChoferNombre() || '—'}`, MX, y);
     y += 26;
 
     // tarjeta Resumen del día
@@ -1733,6 +1845,10 @@ document.getElementById('imgBtn').addEventListener('click', () => {
     // derivar el Blob (para compartir con Web Share API) a partir del dataURL
     fetch(dataUrl).then(r => r.blob()).then(blob => {
       currentImgBlob = blob;
+      // intento de compartir directo, en un solo toque (sin descargar)
+      if (navigator.canShare) {
+        shareOrExplain(blob, filename, 'image/png', true);
+      }
     }).catch(() => { currentImgBlob = null; });
 
   }catch(err){
@@ -1747,19 +1863,7 @@ document.getElementById('imgCloseBtn').addEventListener('click', () => {
 
 document.getElementById('imgShareBtn').addEventListener('click', async () => {
   if (!currentImgBlob) return;
-  const filename = document.getElementById('imgDownloadLink').dataset.filename || 'cuadre_caja.png';
-  const file = new File([currentImgBlob], filename, { type: 'image/png' });
-
-  if (navigator.canShare && navigator.canShare({ files: [file] })) {
-    try{
-      await navigator.share({ files: [file], title: 'Cuadre de Caja', text: 'Cuadre de caja del día' });
-      return;
-    }catch(err){
-      if (err.name === 'AbortError') return;
-    }
-  }
-  document.getElementById('imgDownloadLink').click();
-  showToast('Descargado — compártelo desde tus archivos');
+  await shareOrExplain(currentImgBlob, document.getElementById('imgDownloadLink').dataset.filename || 'cuadre_caja.png', 'image/png');
 });
 
 /* ---------- Copy summary ---------- */
@@ -1788,8 +1892,13 @@ resetBtn.addEventListener('click', () => {
     document.getElementById('cobranza').value = '';
     allListKeys.forEach(cat => { listState[cat.key] = [{desc:'', monto:null}]; renderList(cat.key); });
     renderDenom();
+    choferSelect.value = '';
+    choferOtroInput.value = '';
+    choferOtroRow.style.display = 'none';
+    fechaInput.valueAsDate = new Date();
     try{ localStorage.removeItem(STORAGE_KEY); }catch(e){}
     recalc();
+    checkRequired();
     showToast('Cuadre reiniciado');
   } else {
     resetBtn.dataset.confirming = 'true';
@@ -1804,6 +1913,8 @@ resetBtn.addEventListener('click', () => {
 /* ---------- Init ---------- */
 renderDenom();
 recalc();
+if (choferSelect.value === '__otros__') choferOtroRow.style.display = '';
+checkRequired();
 </script>
 </body>
 </html>

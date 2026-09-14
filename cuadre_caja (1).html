@@ -1,0 +1,1920 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cuadre de Caja</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+
+:root{
+  --bg:#E9F2FA;
+  --surface:#FFFFFF;
+  --surface2:#E2EDF7;
+  --border:#C6DBEC;
+  --accent:#D9481F;
+  --accent-dim:rgba(217,72,31,0.09);
+  --positive:#1F7A4D;
+  --positive-dim:rgba(31,122,77,0.10);
+  --text:#152436;
+  --text-dim:#52697D;
+  --text-faint:#8AA0B2;
+  --mono: 'Space Grotesk', ui-monospace, monospace;
+  --sans: 'Inter', -apple-system, system-ui, sans-serif;
+}
+
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--sans);
+  padding:18px 14px 60px;
+  -webkit-tap-highlight-color:transparent;
+}
+
+.wrap{max-width:480px;margin:0 auto;}
+
+/* Header */
+.header{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:18px;padding:0 2px;}
+.header h1{
+  font-family:var(--mono);
+  font-size:20px;
+  font-weight:700;
+  letter-spacing:-0.02em;
+  margin:0;
+}
+.header .tag{
+  font-size:10px;
+  color:var(--text-faint);
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+}
+
+.fecha-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:12px 14px;
+  margin-bottom:16px;
+}
+.fecha-row label{font-size:13px;color:var(--text-dim);font-weight:500;}
+.fecha-row input[type=date]{
+  background:transparent;
+  border:none;
+  color:var(--text);
+  font-family:var(--mono);
+  font-size:14px;
+  font-weight:600;
+  text-align:right;
+  color-scheme:light;
+}
+.fecha-row select,
+.fecha-row input[type=text]{
+  background:transparent;
+  border:none;
+  color:var(--text);
+  font-family:var(--sans);
+  font-size:14px;
+  font-weight:600;
+  text-align:right;
+  max-width:64%;
+}
+.fecha-row select:focus,
+.fecha-row input[type=text]:focus{outline:none;}
+.required-mark{color:var(--accent);}
+.required-hint{
+  font-size:12px;
+  color:var(--accent);
+  background:var(--accent-dim);
+  border:1px solid rgba(217,72,31,0.3);
+  border-radius:10px;
+  padding:10px 12px;
+  margin:-6px 0 16px;
+  display:none;
+}
+.required-hint.show{display:block;}
+#formBody.locked{
+  opacity:0.35;
+  filter:grayscale(0.4);
+  pointer-events:none;
+  user-select:none;
+}
+
+/* Section card */
+.card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:16px 14px;
+  margin-bottom:14px;
+}
+.card-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:10px;
+}
+.card-title{
+  color:var(--accent);
+  font-weight:700;
+  font-size:15px;
+  letter-spacing:-0.01em;
+}
+.card-subtotal{
+  font-family:var(--mono);
+  font-weight:600;
+  font-size:14px;
+  color:var(--text);
+}
+
+/* Denominaciones */
+.denom-row{
+  display:grid;
+  grid-template-columns:44px 16px 1fr 16px 74px;
+  align-items:center;
+  gap:8px;
+  padding:9px 0;
+  border-bottom:1px solid var(--border);
+}
+.denom-row:last-child{border-bottom:none;}
+.denom-val{font-size:16px;color:var(--text-dim);font-family:var(--mono);text-align:right;}
+.op{color:var(--accent);text-align:center;font-size:13px;}
+.denom-row input[type=number]{
+  width:100%;
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:8px;
+  color:var(--text);
+  font-family:var(--mono);
+  font-size:15px;
+  text-align:center;
+  padding:6px 4px;
+}
+.denom-row input[type=number]:focus{outline:none;border-color:var(--accent);}
+.denom-sub{font-family:var(--mono);font-size:15px;font-weight:600;text-align:right;}
+
+.denom-group-sub{
+  display:flex;
+  justify-content:space-between;
+  align-items:baseline;
+  padding:8px 0;
+  margin-bottom:2px;
+}
+.denom-group-sub .lbl{font-size:12px;color:var(--text-faint);text-transform:uppercase;letter-spacing:0.06em;}
+.denom-group-sub .val{font-family:var(--mono);font-size:14px;font-weight:600;color:var(--text-dim);}
+
+.denom-total{
+  display:flex;
+  justify-content:space-between;
+  align-items:baseline;
+  margin-top:10px;
+  padding-top:12px;
+  border-top:1px solid var(--border);
+}
+.denom-total .lbl{font-size:13px;color:var(--text-dim);}
+.denom-total .val{font-family:var(--mono);font-size:20px;font-weight:700;color:var(--accent);}
+
+/* Resumen rows */
+.sum-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:10px 0;
+  border-bottom:1px solid var(--border);
+}
+.sum-row:last-child{border-bottom:none;}
+.sum-row .lbl{font-size:14px;color:var(--text-dim);display:flex;align-items:center;gap:6px;}
+.sum-row .lbl .sign{color:var(--accent);font-family:var(--mono);width:14px;}
+.sum-row .hint{font-size:10px;color:var(--text-faint);}
+.sum-row input[type=number]{
+  width:120px;
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:8px;
+  color:var(--text);
+  font-family:var(--mono);
+  font-size:15px;
+  text-align:right;
+  padding:8px 10px;
+}
+.sum-row input[type=number]:focus{outline:none;border-color:var(--accent);}
+.sum-row input[readonly]{color:var(--text-dim);border-color:var(--border);background:var(--surface);}
+.sum-row .sync{
+  background:none;
+  border:1px solid var(--border);
+  color:var(--text-faint);
+  font-size:10px;
+  border-radius:6px;
+  padding:2px 6px;
+  cursor:pointer;
+  margin-left:6px;
+}
+.sum-row .sync:hover{border-color:var(--accent);color:var(--accent);}
+
+.neto-card{
+  background:var(--accent-dim);
+  border:1px solid rgba(255,90,60,0.35);
+  border-radius:14px;
+  padding:14px 16px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-top:6px;
+}
+.neto-card .lbl{font-size:13px;color:var(--accent);font-weight:600;letter-spacing:0.01em;}
+.neto-card .val{font-family:var(--mono);font-size:22px;font-weight:700;color:var(--text);}
+
+/* Incrementable list sections */
+.item-row{
+  display:grid;
+  grid-template-columns:22px 1fr 92px 28px;
+  gap:8px;
+  align-items:center;
+  margin-bottom:8px;
+}
+.item-row .idx{
+  font-family:var(--mono);
+  font-size:12px;
+  font-weight:700;
+  color:var(--text-faint);
+  text-align:right;
+}
+.item-row input[type=text]{
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:8px;
+  color:var(--text);
+  font-size:13px;
+  padding:9px 10px;
+  font-family:var(--sans);
+}
+.item-row input[type=number]{
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:8px;
+  color:var(--text);
+  font-family:var(--mono);
+  font-size:14px;
+  text-align:right;
+  padding:9px 8px;
+}
+.item-row input:focus{outline:none;border-color:var(--accent);}
+.item-row .del{
+  background:none;
+  border:none;
+  color:var(--text-faint);
+  font-size:16px;
+  cursor:pointer;
+  width:28px;
+  height:28px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.item-row .del:hover{color:var(--accent);}
+
+.add-btn{
+  width:100%;
+  background:transparent;
+  border:1px dashed var(--border);
+  color:var(--text-dim);
+  border-radius:10px;
+  padding:9px;
+  font-size:13px;
+  font-family:var(--sans);
+  cursor:pointer;
+  margin-top:2px;
+}
+.add-btn:hover{border-color:var(--accent);color:var(--accent);}
+
+/* Total general */
+.total-card{
+  background:var(--surface);
+  border:1px solid var(--accent);
+  border-radius:16px;
+  padding:18px 16px;
+  margin-top:6px;
+  text-align:center;
+}
+.total-card .lbl{font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px;}
+.total-card .val{font-family:var(--mono);font-size:32px;font-weight:700;color:var(--accent);letter-spacing:-0.01em;}
+.total-card .breakdown{
+  margin-top:12px;
+  padding-top:12px;
+  border-top:1px solid var(--border);
+  display:flex;
+  flex-direction:column;
+  gap:5px;
+  text-align:left;
+}
+.total-card .breakdown div{
+  display:flex;
+  justify-content:space-between;
+  font-size:12px;
+  color:var(--text-dim);
+  font-family:var(--mono);
+}
+.total-card .breakdown .breakdown-compare{
+  color:var(--text);
+  font-weight:700;
+}
+.total-card .breakdown .breakdown-total{
+  color:var(--accent);
+  font-weight:700;
+  font-size:13px;
+}
+.total-card .breakdown .breakdown-divider{
+  height:1px;
+  background:var(--border);
+  margin:4px 0;
+}
+
+/* PDF preview */
+.pdf-preview{
+  display:none;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:14px;
+  margin-top:14px;
+}
+.pdf-preview.show{display:block;}
+.pdf-preview .pdf-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:10px;
+}
+.pdf-preview .pdf-title{font-size:13px;font-weight:700;color:var(--text);}
+.pdf-preview .pdf-close{
+  background:none;border:none;color:var(--text-faint);font-size:18px;cursor:pointer;line-height:1;
+}
+.pdf-preview .pdf-close:hover{color:var(--accent);}
+
+.pdf-preview .pdf-actions{display:flex;gap:10px;margin-top:10px;}
+.pdf-preview .pdf-actions a,
+.pdf-preview .pdf-actions button{
+  flex:1;
+  text-align:center;
+  padding:11px;
+  border-radius:12px;
+  font-family:var(--sans);
+  font-weight:600;
+  font-size:13px;
+  cursor:pointer;
+  text-decoration:none;
+  border:1px solid var(--border);
+}
+.pdf-share{background:var(--accent);color:#FFF6EF;border:none !important;}
+.pdf-download{background:transparent;color:var(--text-dim);}
+.pdf-download:hover{color:var(--accent);border-color:var(--accent);}
+.pdf-preview img{width:100%;border-radius:10px;border:1px solid var(--border);display:block;}
+
+/* Vista previa estilo hoja impresa (HTML, no depende del visor de PDF del dispositivo) */
+.pdf-page{
+  background:#FFFFFF;
+  color:#171717;
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:22px 20px;
+  max-height:60vh;
+  overflow-y:auto;
+  font-family:var(--mono);
+  font-size:12.5px;
+  line-height:1.65;
+  box-shadow:0 2px 10px rgba(20,30,45,0.08);
+}
+.pdf-page .pp-title{font-size:16px;font-weight:700;letter-spacing:0.02em;margin-bottom:2px;}
+.pdf-page .pp-fecha{font-size:11px;color:#6b6b6b;margin-bottom:14px;}
+.pdf-page .pp-line{white-space:pre-wrap;word-break:break-word;}
+.pdf-page .pp-line.bold{font-weight:700;}
+.pdf-page .pp-line.total{font-weight:700;font-size:13.5px;margin-top:6px;}
+.pdf-page .pp-line.blank{height:8px;}
+
+/* Diferencia */
+.diff-card{
+  background:var(--positive-dim);
+  border:1px solid rgba(31,122,77,0.35);
+  border-radius:16px;
+  padding:16px;
+  margin-top:14px;
+  text-align:center;
+  transition:background 0.2s, border-color 0.2s;
+}
+.diff-card.off{
+  background:var(--accent-dim);
+  border-color:rgba(217,72,31,0.4);
+}
+.diff-card .lbl{font-size:11px;color:var(--positive);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px;font-weight:700;}
+.diff-card.off .lbl{color:var(--accent);}
+.diff-card .val{font-family:var(--mono);font-size:26px;font-weight:700;color:var(--text);}
+.diff-card .status{font-size:12px;color:var(--positive);margin-top:6px;}
+.diff-card.off .status{color:var(--accent);}
+.diff-card .formula{font-size:11px;color:var(--text-faint);margin-top:8px;font-family:var(--mono);}
+
+@media print{
+  body{background:#fff;padding:0;}
+  .actions,.add-btn,.del,.sync{display:none !important;}
+  .card,.total-card,.diff-card,.fecha-row,.neto-card{box-shadow:none;break-inside:avoid;}
+  input{border:none !important;background:transparent !important;}
+  .toast{display:none !important;}
+}
+
+/* Footer actions */
+.actions{display:flex;gap:10px;margin-top:16px;}
+.actions button{
+  flex:1;
+  padding:12px;
+  border-radius:12px;
+  font-family:var(--sans);
+  font-weight:600;
+  font-size:13px;
+  cursor:pointer;
+  border:1px solid var(--border);
+}
+.btn-copy{background:var(--accent);color:#FFF6EF;border:none;}
+.btn-pdf{background:var(--text);color:var(--bg);border:none;}
+.btn-pdf:hover{opacity:0.88;}
+.btn-img{background:transparent;color:var(--accent);border:1px solid var(--accent);}
+.btn-img:hover{background:var(--accent-dim);}
+.btn-reset{background:transparent;color:var(--text-dim);}
+.btn-reset:hover{color:var(--accent);border-color:var(--accent);}
+
+.toast{
+  position:fixed;
+  bottom:20px;
+  left:50%;
+  transform:translateX(-50%) translateY(20px);
+  background:var(--surface2);
+  border:1px solid var(--accent);
+  color:var(--text);
+  padding:10px 18px;
+  border-radius:10px;
+  font-size:13px;
+  opacity:0;
+  transition:all 0.25s ease;
+  pointer-events:none;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="header">
+    <h1>Cuadre de Caja</h1>
+    <span class="tag">Zonal · Soles</span>
+  </div>
+
+  <div class="fecha-row">
+    <label for="fecha">Fecha de reporte <span class="required-mark">*</span></label>
+    <input type="date" id="fecha">
+  </div>
+
+  <div class="fecha-row">
+    <label for="chofer">Chófer <span class="required-mark">*</span></label>
+    <select id="chofer">
+      <option value="">Selecciona...</option>
+      <option value="CRISTIAN BRANDER CACHI QUIROZ">CRISTIAN BRANDER CACHI QUIROZ</option>
+      <option value="JORGE LUIS CHUQUIMANGO ALCALDE">JORGE LUIS CHUQUIMANGO ALCALDE</option>
+      <option value="ANIBAL LLAMOGA MESTANZA">ANIBAL LLAMOGA MESTANZA</option>
+      <option value="__otros__">Otros</option>
+    </select>
+  </div>
+
+  <div class="fecha-row" id="choferOtroRow" style="display:none;">
+    <label for="choferOtro">Nombre del chófer</label>
+    <input type="text" id="choferOtro" placeholder="Escribe el nombre">
+  </div>
+
+  <div class="required-hint" id="requiredHint">Completa la fecha y el chófer para habilitar el formulario.</div>
+
+  <div id="formBody">
+
+  <div class="card">
+    <div class="card-head"><div class="card-title">Resumen del día</div></div>
+
+    <div class="sum-row">
+      <span class="lbl"><span class="sign">+</span>Total reporte bruto
+        <button type="button" class="sync" id="syncContado">usar total</button>
+      </span>
+      <input type="number" id="contado" step="0.01" placeholder="0.00">
+    </div>
+    <div class="sum-row">
+      <span class="lbl"><span class="sign">+</span>Cobranza día</span>
+      <input type="number" id="cobranza" step="0.01" placeholder="0.00">
+    </div>
+    <div class="sum-row">
+      <span class="lbl"><span class="sign">−</span>Rechazos</span>
+      <span class="card-subtotal" id="rechazosMini">S/ 0.00</span>
+    </div>
+
+    <div class="neto-card">
+      <span class="lbl">= Neto a reportar</span>
+      <span class="val" id="neto">S/ 0.00</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <div class="card-title">− RECHAZOS</div>
+      <div class="card-subtotal" data-sub="rechazos">S/ 0.00</div>
+    </div>
+    <div data-list="rechazos"></div>
+    <button class="add-btn" data-add="rechazos">+ Agregar rechazo</button>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <div class="card-title">Denominaciones</div>
+      <div class="card-subtotal" id="denomTotalMini">S/ 0.00</div>
+    </div>
+    <div id="denomList"></div>
+    <div class="denom-total">
+      <span class="lbl">Total billetes más monedas</span>
+      <span class="val" id="denomTotal">S/ 0.00</span>
+    </div>
+  </div>
+
+  <!-- Incrementable sections generated by JS -->
+  <div id="sectionsContainer"></div>
+
+  <div class="total-card">
+    <div class="lbl">Neto a reportar</div>
+    <div class="val" id="totalGeneral">S/ 0.00</div>
+    <div class="breakdown" id="breakdown"></div>
+  </div>
+
+  <div class="diff-card" id="diffCard">
+    <div class="lbl">Diferencia</div>
+    <div class="val" id="diffVal">S/ 0.00</div>
+    <div class="status" id="diffStatus">Cuadra</div>
+    <div class="formula">(Total billetes y monedas + Total rubros) − Neto a reportar</div>
+  </div>
+
+  <div class="actions">
+    <button class="btn-copy" id="copyBtn">Copiar resumen</button>
+    <button class="btn-reset" id="resetBtn">Reiniciar</button>
+  </div>
+  <div class="actions">
+    <button class="btn-pdf" id="pdfBtn">Emitir PDF</button>
+    <button class="btn-img" id="imgBtn">Emitir imagen</button>
+  </div>
+
+  <div class="pdf-preview" id="pdfPreview">
+    <div class="pdf-head">
+      <span class="pdf-title">Vista previa del PDF</span>
+      <button class="pdf-close" id="pdfCloseBtn" title="Cerrar">✕</button>
+    </div>
+    <div class="pdf-page" id="pdfPageContent"></div>
+    <div class="pdf-actions">
+      <button class="pdf-share" id="pdfShareBtn">Compartir</button>
+      <a class="pdf-download" id="pdfDownloadLink" download>Descargar</a>
+    </div>
+  </div>
+
+  <div class="pdf-preview" id="imgPreview">
+    <div class="pdf-head">
+      <span class="pdf-title">Vista previa de la imagen</span>
+      <button class="pdf-close" id="imgCloseBtn" title="Cerrar">✕</button>
+    </div>
+    <img id="imgPreviewImg" alt="Cuadre de caja">
+    <div class="pdf-actions">
+      <button class="pdf-share" id="imgShareBtn">Compartir</button>
+      <a class="pdf-download" id="imgDownloadLink" download>Descargar</a>
+    </div>
+  </div>
+
+  </div>
+
+</div>
+
+<div class="toast" id="toast">Resumen copiado</div>
+
+<script>
+const denominaciones = [200,100,50,20,10,5,2,1,0.5,0.2,0.1];
+const BILLETE_UMBRAL = 10; // 10 y mayores = billetes; menores = monedas
+const denomState = denominaciones.map(v => ({valor:v, cantidad:0, tipo: v >= BILLETE_UMBRAL ? 'billete' : 'moneda'}));
+
+const categories = [
+  {key:'notascred', label:'Notas Créd.',sign:'+'},
+  {key:'yapes',     label:'Yapes',      sign:'+'},
+  {key:'vaucher',   label:'Vaucher',    sign:'+'},
+  {key:'gastos',    label:'Gastos',     sign:'+'},
+];
+const rechazosCat = {key:'rechazos', label:'Rechazos', sign:'−'};
+const allListKeys = [rechazosCat, ...categories];
+
+const listState = {};
+allListKeys.forEach(c => listState[c.key] = [{desc:'', monto:null}]);
+
+/* ---------- Persistencia local (localStorage) ---------- */
+const STORAGE_KEY = 'cuadreCaja_v1';
+
+function saveState(){
+  try{
+    const fechaEl = document.getElementById('fecha');
+    const contadoEl = document.getElementById('contado');
+    const cobranzaEl = document.getElementById('cobranza');
+    const choferEl = document.getElementById('chofer');
+    const choferOtroEl = document.getElementById('choferOtro');
+    const state = {
+      fecha: fechaEl ? fechaEl.value : '',
+      contado: contadoEl ? contadoEl.value : '',
+      cobranza: cobranzaEl ? cobranzaEl.value : '',
+      chofer: choferEl ? choferEl.value : '',
+      choferOtro: choferOtroEl ? choferOtroEl.value : '',
+      denom: denomState.map(r => r.cantidad || 0),
+      lists: {},
+    };
+    allListKeys.forEach(c => { state.lists[c.key] = listState[c.key]; });
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }catch(e){ /* almacenamiento no disponible (modo privado, etc.) — se ignora */ }
+}
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const state = JSON.parse(raw);
+
+    if (state.fecha) {
+      const fechaEl = document.getElementById('fecha');
+      if (fechaEl) fechaEl.value = state.fecha;
+    }
+    const contadoEl = document.getElementById('contado');
+    if (contadoEl && state.contado !== undefined) contadoEl.value = state.contado;
+    const cobranzaEl = document.getElementById('cobranza');
+    if (cobranzaEl && state.cobranza !== undefined) cobranzaEl.value = state.cobranza;
+    const choferEl = document.getElementById('chofer');
+    if (choferEl && state.chofer) {
+      choferEl.value = state.chofer;
+      if (state.chofer === '__otros__') {
+        document.getElementById('choferOtroRow').style.display = '';
+        const choferOtroEl = document.getElementById('choferOtro');
+        if (choferOtroEl && state.choferOtro) choferOtroEl.value = state.choferOtro;
+      }
+    }
+
+    if (Array.isArray(state.denom)) {
+      state.denom.forEach((c, i) => { if (denomState[i]) denomState[i].cantidad = parseFloat(c) || 0; });
+    }
+
+    if (state.lists) {
+      allListKeys.forEach(c => {
+        const saved = state.lists[c.key];
+        if (Array.isArray(saved) && saved.length) {
+          const cleaned = saved
+            .filter(it => it && (it.desc || it.monto))
+            .map(it => ({ desc: it.desc || '', monto: (it.monto === null || it.monto === undefined) ? null : parseFloat(it.monto) || null }));
+          cleaned.push({ desc:'', monto:null }); // renglón vacío al final para seguir ingresando
+          listState[c.key] = cleaned;
+        }
+      });
+    }
+  }catch(e){ /* datos guardados corruptos o no disponibles — se ignora */ }
+}
+
+loadState();
+
+function fmt(n){
+  n = isFinite(n) ? n : 0;
+  return 'S/ ' + n.toLocaleString('es-PE', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+
+/* ---------- Denominaciones ---------- */
+const denomList = document.getElementById('denomList');
+
+function denomRowHTML(row, i){
+  const sub = row.valor * (row.cantidad || 0);
+  const div = document.createElement('div');
+  div.className = 'denom-row';
+  div.innerHTML = `
+    <span class="denom-val">${row.valor.toFixed(row.valor % 1 === 0 ? 0 : 2)}</span>
+    <span class="op">×</span>
+    <input type="number" min="0" step="1" value="${row.cantidad || ''}" placeholder="0" data-i="${i}">
+    <span class="op">=</span>
+    <span class="denom-sub">${sub.toFixed(2)}</span>
+  `;
+  return div;
+}
+
+function groupSubtotalHTML(label, total){
+  const div = document.createElement('div');
+  div.className = 'denom-group-sub';
+  div.innerHTML = `<span class="lbl">Subtotal ${label}</span><span class="val">${fmt(total)}</span>`;
+  return div;
+}
+
+function renderDenom(){
+  denomList.innerHTML = '';
+
+  const billetes = denomState.map((r,i) => ({...r,i})).filter(r => r.tipo === 'billete');
+  const monedas  = denomState.map((r,i) => ({...r,i})).filter(r => r.tipo === 'moneda');
+
+  billetes.forEach(row => denomList.appendChild(denomRowHTML(row, row.i)));
+  const subBilletes = billetes.reduce((s,r) => s + r.valor * (r.cantidad||0), 0);
+  denomList.appendChild(groupSubtotalHTML('billetes', subBilletes));
+
+  monedas.forEach(row => denomList.appendChild(denomRowHTML(row, row.i)));
+  const subMonedas = monedas.reduce((s,r) => s + r.valor * (r.cantidad||0), 0);
+  denomList.appendChild(groupSubtotalHTML('monedas', subMonedas));
+
+  denomList.querySelectorAll('input').forEach(inp => {
+    inp.addEventListener('input', e => {
+      const i = +e.target.dataset.i;
+      denomState[i].cantidad = parseFloat(e.target.value) || 0;
+      renderDenom();
+      recalc();
+    });
+  });
+
+  const total = subBilletes + subMonedas;
+  document.getElementById('denomTotal').textContent = fmt(total);
+  document.getElementById('denomTotalMini').textContent = fmt(total);
+  return total;
+}
+
+/* ---------- Incrementable sections ---------- */
+const sectionsContainer = document.getElementById('sectionsContainer');
+categories.forEach(cat => {
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.innerHTML = `
+    <div class="card-head">
+      <div class="card-title">${cat.sign} ${cat.label.toUpperCase()}</div>
+      <div class="card-subtotal" data-sub="${cat.key}">S/ 0.00</div>
+    </div>
+    <div data-list="${cat.key}"></div>
+    <button class="add-btn" data-add="${cat.key}">+ Agregar ${cat.label.toLowerCase()}</button>
+  `;
+  sectionsContainer.appendChild(card);
+});
+
+function maybeAddRow(k, i, focusNew){
+  const arr = listState[k];
+  const last = arr[arr.length - 1];
+  if (i === arr.length - 1 && (last.desc || last.monto)) {
+    arr.push({desc:'', monto:null});
+    renderList(k);
+    if (focusNew) {
+      const nextDesc = document.querySelector(`[data-key="${k}"][data-i="${arr.length - 1}"][data-field="desc"]`);
+      if (nextDesc) {
+        nextDesc.focus();
+        nextDesc.setSelectionRange(0, 0);
+      }
+    }
+  }
+}
+
+function renderList(key){
+  const container = document.querySelector(`[data-list="${key}"]`);
+  container.innerHTML = '';
+  listState[key].forEach((item, i) => {
+    const row = document.createElement('div');
+    row.className = 'item-row';
+    row.innerHTML = `
+      <span class="idx">${i + 1}.</span>
+      <input type="text" placeholder="Descripción" value="${item.desc}" data-key="${key}" data-i="${i}" data-field="desc">
+      <input type="number" placeholder="0.00" step="0.01" value="${item.monto ?? ''}" data-key="${key}" data-i="${i}" data-field="monto">
+      <button class="del" data-del="${key}" data-i="${i}" title="Eliminar">✕</button>
+    `;
+    container.appendChild(row);
+  });
+
+  container.querySelectorAll('input').forEach(inp => {
+    inp.addEventListener('input', e => {
+      const k = e.target.dataset.key, i = +e.target.dataset.i, f = e.target.dataset.field;
+      const arr = listState[k];
+      arr[i][f] = f === 'monto' ? (parseFloat(e.target.value) || null) : e.target.value;
+      recalc();
+    });
+
+    // el nuevo renglón se agrega solo al SALIR del campo (blur) o presionar Enter,
+    // nunca mientras se sigue escribiendo el número
+    inp.addEventListener('blur', e => {
+      maybeAddRow(e.target.dataset.key, +e.target.dataset.i, false);
+    });
+
+    inp.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        maybeAddRow(e.target.dataset.key, +e.target.dataset.i, true);
+      }
+    });
+  });
+
+  container.querySelectorAll('.del').forEach(btn => {
+    btn.addEventListener('click', e => {
+      const k = e.target.dataset.del, i = +e.target.dataset.i;
+      if (listState[k].length > 1) {
+        listState[k].splice(i, 1);
+      } else {
+        listState[k][0] = {desc:'', monto:null};
+      }
+      renderList(k);
+      recalc();
+    });
+  });
+}
+allListKeys.forEach(cat => renderList(cat.key));
+
+document.querySelectorAll('[data-add]').forEach(btn => {
+  btn.addEventListener('click', e => {
+    const k = e.target.dataset.add;
+    listState[k].push({desc:'', monto:null});
+    renderList(k);
+  });
+});
+
+function categorySum(key){
+  return listState[key].reduce((s,it) => s + (it.monto || 0), 0);
+}
+
+/* ---------- Recalc everything ---------- */
+function recalc(){
+  const denomTotal = denomState.reduce((s,r) => s + r.valor * (r.cantidad||0), 0);
+  const contado = parseFloat(document.getElementById('contado').value) || 0;
+
+  const cobranza = parseFloat(document.getElementById('cobranza').value) || 0;
+  const rechazos = categorySum('rechazos');
+  document.getElementById('rechazosMini').textContent = fmt(rechazos);
+  const neto = contado + cobranza - rechazos;
+  document.getElementById('neto').textContent = fmt(neto);
+
+  let sumCats = 0;
+  categories.forEach(cat => { sumCats += categorySum(cat.key); });
+
+  const breakdownEl = document.getElementById('breakdown');
+  breakdownEl.innerHTML = '';
+
+  const compareLine1 = document.createElement('div');
+  compareLine1.className = 'breakdown-compare';
+  compareLine1.innerHTML = `<span>Total billetes más monedas</span><span>${fmt(denomTotal)}</span>`;
+  breakdownEl.appendChild(compareLine1);
+
+  const compareLine2 = document.createElement('div');
+  compareLine2.className = 'breakdown-compare';
+  compareLine2.innerHTML = `<span>Total rubros</span><span>${fmt(sumCats)}</span>`;
+  breakdownEl.appendChild(compareLine2);
+
+  const compareTotal = document.createElement('div');
+  compareTotal.className = 'breakdown-total';
+  compareTotal.innerHTML = `<span>Total general</span><span>${fmt(denomTotal + sumCats)}</span>`;
+  breakdownEl.appendChild(compareTotal);
+
+  const divider = document.createElement('div');
+  divider.className = 'breakdown-divider';
+  breakdownEl.appendChild(divider);
+
+  categories.forEach(cat => {
+    const s = categorySum(cat.key);
+    document.querySelector(`[data-sub="${cat.key}"]`).textContent = fmt(s);
+    const line = document.createElement('div');
+    line.innerHTML = `<span>${cat.sign} ${cat.label}</span><span>${fmt(s)}</span>`;
+    breakdownEl.appendChild(line);
+  });
+
+  const totalGeneral = neto;
+  document.getElementById('totalGeneral').textContent = fmt(totalGeneral);
+
+  // Diferencia = (Total billetes y monedas + Total de rubros) − Neto a reportar
+  const diff = (denomTotal + sumCats) - neto;
+  const diffCard = document.getElementById('diffCard');
+  const isBalanced = Math.abs(diff) < 0.01;
+  diffCard.classList.toggle('off', !isBalanced);
+  document.getElementById('diffVal').textContent = fmt(diff);
+  document.getElementById('diffStatus').textContent = isBalanced ? 'Cuadra' : (diff > 0 ? 'Sobra sustento' : 'Falta sustentar');
+
+  saveState();
+}
+
+['contado','cobranza'].forEach(id => {
+  document.getElementById(id).addEventListener('input', recalc);
+});
+
+document.getElementById('syncContado').addEventListener('click', () => {
+  const denomTotal = denomState.reduce((s,r) => s + r.valor * (r.cantidad||0), 0);
+  document.getElementById('contado').value = denomTotal.toFixed(2);
+  recalc();
+});
+
+function showToast(msg){
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 1800);
+}
+
+/* ---------- Fecha default ---------- */
+const fechaInput = document.getElementById('fecha');
+if (!fechaInput.value) fechaInput.valueAsDate = new Date();
+fechaInput.addEventListener('input', () => { saveState(); checkRequired(); });
+
+/* ---------- Chófer (obligatorio, igual que la fecha) ---------- */
+const choferSelect = document.getElementById('chofer');
+const choferOtroRow = document.getElementById('choferOtroRow');
+const choferOtroInput = document.getElementById('choferOtro');
+
+function getChoferNombre(){
+  if (choferSelect.value === '__otros__') return choferOtroInput.value.trim();
+  return choferSelect.value;
+}
+
+function checkRequired(){
+  const ok = !!fechaInput.value && !!getChoferNombre();
+  document.getElementById('formBody').classList.toggle('locked', !ok);
+  document.getElementById('requiredHint').classList.toggle('show', !ok);
+  return ok;
+}
+
+choferSelect.addEventListener('change', () => {
+  choferOtroRow.style.display = choferSelect.value === '__otros__' ? '' : 'none';
+  if (choferSelect.value !== '__otros__') choferOtroInput.value = '';
+  saveState();
+  checkRequired();
+});
+choferOtroInput.addEventListener('input', () => { saveState(); checkRequired(); });
+
+function buildReportLines(){
+  const fecha = fechaInput.value || '—';
+  const contado = document.getElementById('contado').value;
+  const cobranza = document.getElementById('cobranza').value || '0.00';
+  const neto = document.getElementById('neto').textContent;
+  const totalGeneral = document.getElementById('totalGeneral').textContent;
+
+  let lines = [];
+  lines.push(`CUADRE DE CAJA — ${fecha}`);
+  lines.push(`Chófer: ${getChoferNombre() || '—'}`);
+  lines.push('');
+  lines.push(`+ Total reporte bruto: ${fmt(parseFloat(contado)||0)}`);
+  lines.push(`+ Cobranza día: ${fmt(parseFloat(cobranza)||0)}`);
+  lines.push(`${rechazosCat.sign} ${rechazosCat.label.toUpperCase()}: ${fmt(categorySum('rechazos'))}`);
+  listState.rechazos.filter(it => it.desc || it.monto).forEach((it, idx) => lines.push(`   ${idx + 1}. ${it.desc || '(sin descripción)'}: ${fmt(it.monto||0)}`));
+  lines.push(`= Neto a reportar: ${neto}`);
+  lines.push('');
+  categories.forEach(cat => {
+    const items = listState[cat.key].filter(it => it.desc || it.monto);
+    lines.push(`${cat.sign} ${cat.label.toUpperCase()}: ${fmt(categorySum(cat.key))}`);
+    items.forEach((it, idx) => lines.push(`   ${idx + 1}. ${it.desc || '(sin descripción)'}: ${fmt(it.monto||0)}`));
+  });
+  lines.push('');
+  lines.push(`NETO A REPORTAR: ${totalGeneral}`);
+  lines.push(`DIFERENCIA (Neto − rubros): ${document.getElementById('diffVal').textContent} — ${document.getElementById('diffStatus').textContent}`);
+  return lines;
+}
+
+function renderPdfPage(lines){
+  const container = document.getElementById('pdfPageContent');
+  container.innerHTML = '';
+
+  const title = document.createElement('div');
+  title.className = 'pp-title';
+  title.textContent = 'CUADRE DE CAJA';
+  container.appendChild(title);
+
+  const fechaEl = document.createElement('div');
+  fechaEl.className = 'pp-fecha';
+  fechaEl.textContent = `Fecha de reporte: ${fechaInput.value || '—'}`;
+  container.appendChild(fechaEl);
+
+  const choferEl = document.createElement('div');
+  choferEl.className = 'pp-fecha';
+  choferEl.textContent = `Chófer: ${getChoferNombre() || '—'}`;
+  container.appendChild(choferEl);
+
+  lines.forEach(line => {
+    const div = document.createElement('div');
+    if (line === '') {
+      div.className = 'pp-line blank';
+    } else if (/^(NETO A REPORTAR|DIFERENCIA)/.test(line)) {
+      div.className = 'pp-line total';
+      div.textContent = line;
+    } else if (/^[+\-−] [A-ZÁÉÍÓÚÑ].*:/.test(line)) {
+      div.className = 'pp-line bold';
+      div.textContent = line;
+    } else {
+      div.className = 'pp-line';
+      div.textContent = line;
+    }
+    container.appendChild(div);
+  });
+}
+
+/* ---------- PDF (formato en tarjetas, igual al diseño de la app) ---------- */
+let currentPdfUrl = null;
+let currentPdfBlob = null;
+
+const PDF_COL = {
+  bg:        [233,242,250],
+  accent:    [217,72,31],
+  accentTint:[250,231,224],
+  positive:  [31,122,77],
+  positiveTint:[221,240,231],
+  text:      [21,36,54],
+  textDim:   [82,105,125],
+  border:    [198,219,236],
+  white:     [255,255,255],
+};
+
+function pdfNewPage(doc){
+  doc.addPage();
+  doc.setFillColor(...PDF_COL.bg);
+  doc.rect(0,0,595.28,841.89,'F');
+  doc.setFillColor(...PDF_COL.accent);
+  doc.rect(0,0,595.28,6,'F');
+  return 48;
+}
+
+function pdfEnsureSpace(doc, y, needed){
+  if (y + needed > 800) return pdfNewPage(doc);
+  return y;
+}
+
+function pdfSummaryBox(doc, x, y, w, rows, netoLabel, netoValue){
+  const pad = 14, lineH = 20, headerH = 22, netoH = 36;
+  const bodyH = rows.length * lineH;
+  const totalH = pad*2 + headerH + bodyH + 12 + netoH;
+  y = pdfEnsureSpace(doc, y, totalH + 14);
+
+  doc.setFillColor(...PDF_COL.white);
+  doc.setDrawColor(...PDF_COL.border);
+  doc.setLineWidth(1);
+  doc.roundedRect(x, y, w, totalH, 8, 8, 'FD');
+
+  doc.setFont('helvetica','bold'); doc.setFontSize(12); doc.setTextColor(...PDF_COL.accent);
+  doc.text('RESUMEN DEL DÍA', x+pad, y+pad+8);
+
+  let ry = y+pad+headerH+8;
+  doc.setFontSize(10);
+  rows.forEach(r => {
+    doc.setFont('helvetica','normal'); doc.setTextColor(...PDF_COL.textDim);
+    doc.text(`${r.sign} ${r.label}`, x+pad, ry);
+    doc.setFont('helvetica','bold'); doc.setTextColor(...PDF_COL.text);
+    doc.text(fmt(r.value), x+w-pad, ry, {align:'right'});
+    ry += lineH;
+  });
+
+  ry += 8;
+  doc.setFillColor(...PDF_COL.accentTint);
+  doc.roundedRect(x+pad-6, ry-16, w-(pad-6)*2, netoH, 6, 6, 'F');
+  doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(...PDF_COL.accent);
+  doc.text(netoLabel, x+pad, ry+5);
+  doc.setFontSize(14); doc.setTextColor(...PDF_COL.text);
+  doc.text(netoValue, x+w-pad, ry+5, {align:'right'});
+
+  return y + totalH + 14;
+}
+
+function pdfSimpleBox(doc, x, y, w, title, rows){
+  const pad = 14, lineH = 18, headerH = 20;
+  const bodyH = rows.length * lineH;
+  const totalH = pad*2 + headerH + bodyH;
+  y = pdfEnsureSpace(doc, y, totalH + 14);
+
+  doc.setFillColor(...PDF_COL.white);
+  doc.setDrawColor(...PDF_COL.border);
+  doc.roundedRect(x, y, w, totalH, 8, 8, 'FD');
+
+  doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(...PDF_COL.accent);
+  doc.text(title, x+pad, y+pad+6);
+
+  let ry = y+pad+headerH+4;
+  doc.setFontSize(10);
+  rows.forEach(r => {
+    doc.setFont('helvetica','normal'); doc.setTextColor(...PDF_COL.textDim);
+    doc.text(r.label, x+pad, ry);
+    doc.setFont('helvetica','bold'); doc.setTextColor(...PDF_COL.text);
+    doc.text(fmt(r.value), x+w-pad, ry, {align:'right'});
+    ry += lineH;
+  });
+
+  return y + totalH + 14;
+}
+
+function pdfDenomTable(doc, x, y, w, denomState){
+  const pad = 14, rowH = 14, headerH = 20, colHeaderH = 14, colGap = 16, subGap = 8, footerH = 20;
+  const billetes = denomState.filter(r => r.tipo === 'billete');
+  const monedas  = denomState.filter(r => r.tipo === 'moneda');
+  const subBilletes = billetes.reduce((s,r) => s + r.valor*(r.cantidad||0), 0);
+  const subMonedas  = monedas.reduce((s,r) => s + r.valor*(r.cantidad||0), 0);
+  const maxRows = Math.max(billetes.length, monedas.length);
+
+  const colContentH = colHeaderH + maxRows*rowH + subGap + rowH;
+  const totalH = pad*2 + headerH + colContentH + 10 + footerH;
+  y = pdfEnsureSpace(doc, y, totalH + 14);
+
+  doc.setFillColor(...PDF_COL.white);
+  doc.setDrawColor(...PDF_COL.border);
+  doc.setLineWidth(1);
+  doc.roundedRect(x, y, w, totalH, 8, 8, 'FD');
+
+  doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(...PDF_COL.accent);
+  doc.text('DENOMINACIONES', x+pad, y+pad+6);
+
+  const colW = (w - pad*2 - colGap) / 2;
+  const leftX = x+pad, rightX = x+pad+colW+colGap;
+  const colTop = y+pad+headerH;
+
+  function numStr(v){ return v % 1 === 0 ? v.toFixed(0) : v.toFixed(2); } // sin signo de moneda
+
+  function drawColumn(items, subtotal, label, colX){
+    doc.setFont('helvetica','bold'); doc.setFontSize(9.5); doc.setTextColor(...PDF_COL.textDim);
+    doc.text(label, colX, colTop);
+
+    let ry = colTop + colHeaderH;
+    doc.setFontSize(9.5);
+    items.forEach(r => {
+      doc.setFont('helvetica','normal'); doc.setTextColor(...PDF_COL.textDim);
+      doc.text(`${numStr(r.valor)}  ×  ${r.cantidad || 0}`, colX, ry);
+      doc.setFont('helvetica','bold'); doc.setTextColor(...PDF_COL.text);
+      doc.text(numStr(r.valor*(r.cantidad||0)), colX+colW, ry, {align:'right'});
+      ry += rowH;
+    });
+
+    const subY = colTop + colHeaderH + maxRows*rowH + subGap;
+    doc.setDrawColor(...PDF_COL.border);
+    doc.line(colX, subY-10, colX+colW, subY-10);
+    doc.setFont('helvetica','bold'); doc.setTextColor(...PDF_COL.accent);
+    doc.text('Subtotal', colX, subY);
+    doc.text(numStr(subtotal), colX+colW, subY, {align:'right'});
+  }
+
+  drawColumn(billetes, subBilletes, 'BILLETES', leftX);
+  drawColumn(monedas, subMonedas, 'MONEDAS', rightX);
+
+  const footerY = colTop + colContentH + 16;
+  doc.setDrawColor(...PDF_COL.border);
+  doc.line(x+pad, footerY-14, x+w-pad, footerY-14);
+  doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(...PDF_COL.text);
+  doc.text('Total billetes más monedas', x+pad, footerY);
+  doc.text(numStr(subBilletes+subMonedas), x+w-pad, footerY, {align:'right'});
+
+  return y + totalH + 14;
+}
+
+function pdfMeasureCategoryCard(doc, w, items){
+  const pad = 14, lineH = 14, headerH = 22, dividerGap = 10;
+  const maxTextW = w - pad*2 - 80;
+  doc.setFont('helvetica','normal'); doc.setFontSize(9.5);
+  const rowsData = items.map((it, idx) => {
+    const label = `${idx+1}. ${it.desc || '(sin descripción)'}`;
+    const wrapped = doc.splitTextToSize(label, maxTextW);
+    return { wrapped, monto: it.monto || 0 };
+  });
+  const bodyH = items.length
+    ? rowsData.reduce((s,r) => s + Math.max(1, r.wrapped.length) * lineH, 0)
+    : lineH;
+  const totalH = pad*2 + headerH + dividerGap + bodyH;
+  return { rowsData, totalH };
+}
+
+function pdfDrawCategoryCardFixed(doc, x, y, w, h, title, subtotal, rowsData){
+  const pad = 14, lineH = 14, headerH = 22, dividerGap = 10;
+
+  doc.setFillColor(...PDF_COL.white);
+  doc.setDrawColor(...PDF_COL.border);
+  doc.roundedRect(x, y, w, h, 8, 8, 'FD');
+
+  doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(...PDF_COL.accent);
+  doc.text(title, x+pad, y+pad+6);
+  doc.setTextColor(...PDF_COL.text);
+  doc.text(fmt(subtotal), x+w-pad, y+pad+6, {align:'right'});
+
+  doc.setDrawColor(...PDF_COL.border);
+  doc.line(x+pad, y+pad+14, x+w-pad, y+pad+14);
+
+  let ry = y+pad+headerH+dividerGap;
+  doc.setFontSize(9.5);
+  if (!rowsData.length){
+    doc.setFont('helvetica','normal'); doc.setTextColor(...PDF_COL.textDim);
+    doc.text('Sin registros', x+pad, ry);
+  } else {
+    rowsData.forEach(r => {
+      const startRy = ry;
+      doc.setFont('helvetica','normal'); doc.setTextColor(...PDF_COL.textDim);
+      r.wrapped.forEach(lineText => { doc.text(lineText, x+pad, ry); ry += lineH; });
+      doc.setFont('helvetica','bold'); doc.setTextColor(...PDF_COL.text);
+      doc.text(fmt(r.monto), x+w-pad, startRy, {align:'right'});
+    });
+  }
+}
+
+function pdfCategoryCard(doc, x, y, w, title, subtotal, items){
+  const pad = 14, lineH = 14, headerH = 22, dividerGap = 10;
+  const maxTextW = w - pad*2 - 80;
+
+  doc.setFont('helvetica','normal'); doc.setFontSize(9.5);
+  const rowsData = items.map((it, idx) => {
+    const label = `${idx+1}. ${it.desc || '(sin descripción)'}`;
+    const wrapped = doc.splitTextToSize(label, maxTextW);
+    return { wrapped, monto: it.monto || 0 };
+  });
+  const bodyH = items.length
+    ? rowsData.reduce((s,r) => s + Math.max(1, r.wrapped.length) * lineH, 0)
+    : lineH;
+  const totalH = pad*2 + headerH + dividerGap + bodyH;
+  y = pdfEnsureSpace(doc, y, totalH + 14);
+
+  doc.setFillColor(...PDF_COL.white);
+  doc.setDrawColor(...PDF_COL.border);
+  doc.roundedRect(x, y, w, totalH, 8, 8, 'FD');
+
+  doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(...PDF_COL.accent);
+  doc.text(title, x+pad, y+pad+6);
+  doc.setTextColor(...PDF_COL.text);
+  doc.text(fmt(subtotal), x+w-pad, y+pad+6, {align:'right'});
+
+  doc.setDrawColor(...PDF_COL.border);
+  doc.line(x+pad, y+pad+14, x+w-pad, y+pad+14);
+
+  let ry = y+pad+headerH+dividerGap;
+  doc.setFontSize(9.5);
+  if (!items.length){
+    doc.setFont('helvetica','normal'); doc.setTextColor(...PDF_COL.textDim);
+    doc.text('Sin registros', x+pad, ry);
+  } else {
+    rowsData.forEach(r => {
+      const startRy = ry;
+      doc.setFont('helvetica','normal'); doc.setTextColor(...PDF_COL.textDim);
+      r.wrapped.forEach(lineText => { doc.text(lineText, x+pad, ry); ry += lineH; });
+      doc.setFont('helvetica','bold'); doc.setTextColor(...PDF_COL.text);
+      doc.text(fmt(r.monto), x+w-pad, startRy, {align:'right'});
+    });
+  }
+
+  return y + totalH + 14;
+}
+
+function pdfBigStat(doc, x, y, w, label, valueText, rgb, tintRgb, subtextLines){
+  const lines = subtextLines ? (Array.isArray(subtextLines) ? subtextLines : [subtextLines]) : [];
+  const h = lines.length ? 56 + lines.length*14 : 56;
+  y = pdfEnsureSpace(doc, y, h + 14);
+
+  doc.setFillColor(...tintRgb);
+  doc.setDrawColor(...rgb);
+  doc.setLineWidth(1.2);
+  doc.roundedRect(x, y, w, h, 10, 10, 'FD');
+
+  doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...rgb);
+  doc.text(label.toUpperCase(), x+w/2, y+22, {align:'center'});
+  doc.setFontSize(20); doc.setTextColor(...PDF_COL.text);
+  doc.text(valueText, x+w/2, y+44, {align:'center'});
+  if (lines.length){
+    doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.setTextColor(...rgb);
+    let sy = y+62;
+    lines.forEach(l => { doc.text(l, x+w/2, sy, {align:'center'}); sy += 14; });
+  }
+
+  return y + h + 14;
+}
+
+document.getElementById('pdfBtn').addEventListener('click', () => {
+  try{
+    if (!window.jspdf) {
+      showToast('No se pudo cargar el generador de PDF');
+      return;
+    }
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+    const pageW = 595.28;
+    const marginX = 48;
+    const boxW = pageW - marginX*2;
+
+    // fondo y franja superior, igual al tema de la app
+    doc.setFillColor(...PDF_COL.bg);
+    doc.rect(0,0,pageW,841.89,'F');
+    doc.setFillColor(...PDF_COL.accent);
+    doc.rect(0,0,pageW,6,'F');
+
+    let y = 40;
+    doc.setFont('helvetica','bold'); doc.setFontSize(20); doc.setTextColor(...PDF_COL.text);
+    doc.text('CUADRE DE CAJA', marginX, y);
+    y += 18;
+    doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(...PDF_COL.textDim);
+    doc.text(`Fecha de reporte: ${fechaInput.value || '—'}`, marginX, y);
+    y += 14;
+    doc.text(`Chófer: ${getChoferNombre() || '—'}`, marginX, y);
+    y += 26;
+
+    // datos vigentes
+    const contado = parseFloat(document.getElementById('contado').value) || 0;
+    const cobranza = parseFloat(document.getElementById('cobranza').value) || 0;
+    const rechazosSum = categorySum('rechazos');
+    const neto = contado + cobranza - rechazosSum;
+    const sumCats = categories.reduce((s,c) => s + categorySum(c.key), 0);
+    const denomTotalPdf = denomState.reduce((s,r) => s + r.valor * (r.cantidad||0), 0);
+    const diff = (denomTotalPdf + sumCats) - neto;
+    const isBalanced = Math.abs(diff) < 0.01;
+
+    // Resumen del día
+    y = pdfSummaryBox(doc, marginX, y, boxW, [
+      {label:'Total reporte bruto', sign:'+', value: contado},
+      {label:'Cobranza día',        sign:'+', value: cobranza},
+      {label:'Rechazos',            sign:'−', value: rechazosSum},
+    ], '= Neto a reportar', fmt(neto));
+
+    // Rechazos (detalle)
+    y = pdfCategoryCard(doc, marginX, y, boxW, '− RECHAZOS', rechazosSum, listState.rechazos.filter(it => it.desc || it.monto));
+
+    // Denominaciones (detalle completo: cada billete y moneda)
+    const subBilletes = denomState.filter(r=>r.tipo==='billete').reduce((s,r)=>s+r.valor*(r.cantidad||0),0);
+    const subMonedas  = denomState.filter(r=>r.tipo==='moneda').reduce((s,r)=>s+r.valor*(r.cantidad||0),0);
+    y = pdfDenomTable(doc, marginX, y, boxW, denomState);
+
+    // Categorías (Notas Créd., Yapes, Vaucher, Gastos) — en pares, dos columnas por fila
+    (function(){
+      const colGap = 16;
+      const colW = (boxW - colGap) / 2;
+      for (let i = 0; i < categories.length; i += 2){
+        const catA = categories[i];
+        const catB = categories[i+1];
+        const itemsA = listState[catA.key].filter(it => it.desc || it.monto);
+        const mA = pdfMeasureCategoryCard(doc, colW, itemsA);
+        let rowH = mA.totalH;
+        let mB = null, itemsB = null;
+        if (catB){
+          itemsB = listState[catB.key].filter(it => it.desc || it.monto);
+          mB = pdfMeasureCategoryCard(doc, colW, itemsB);
+          rowH = Math.max(rowH, mB.totalH);
+        }
+        y = pdfEnsureSpace(doc, y, rowH + 14);
+        pdfDrawCategoryCardFixed(doc, marginX, y, colW, rowH, `${catA.sign} ${catA.label.toUpperCase()}`, categorySum(catA.key), mA.rowsData);
+        if (catB){
+          pdfDrawCategoryCardFixed(doc, marginX+colW+colGap, y, colW, rowH, `${catB.sign} ${catB.label.toUpperCase()}`, categorySum(catB.key), mB.rowsData);
+        }
+        y += rowH + 14;
+      }
+    })();
+
+    // Neto a reportar (destacado, con desglose de cada rubro)
+    (function(){
+      const rubroLines = [];
+      for (let i = 0; i < categories.length; i += 2){
+        const part = categories.slice(i, i+2)
+          .map(c => `${c.label}: ${fmt(categorySum(c.key))}`)
+          .join('   ·   ');
+        rubroLines.push(part);
+      }
+      y = pdfBigStat(doc, marginX, y, boxW, 'Neto a reportar', fmt(neto), PDF_COL.accent, PDF_COL.accentTint, [
+        `Billetes+monedas: ${fmt(subBilletes+subMonedas)}`,
+        ...rubroLines,
+        `Total general: ${fmt(subBilletes+subMonedas+sumCats)}`,
+      ]);
+    })();
+
+    // Diferencia
+    const diffRgb = isBalanced ? PDF_COL.positive : PDF_COL.accent;
+    const diffTint = isBalanced ? PDF_COL.positiveTint : PDF_COL.accentTint;
+    const diffStatus = isBalanced ? 'Cuadra' : (diff > 0 ? 'Sobra sustento' : 'Falta sustentar');
+    y = pdfBigStat(doc, marginX, y, boxW, 'Diferencia', fmt(diff), diffRgb, diffTint, diffStatus);
+
+    const fecha = fechaInput.value || 'sin_fecha';
+    const filename = `cuadre_caja_${fecha}.pdf`;
+
+    // liberar la vista previa anterior si existía
+    if (currentPdfUrl) URL.revokeObjectURL(currentPdfUrl);
+
+    currentPdfBlob = doc.output('blob');
+    currentPdfUrl = URL.createObjectURL(currentPdfBlob);
+
+    // vista previa en HTML (siempre visible, no depende del visor de PDF del dispositivo)
+    const bodyLines = buildReportLines().slice(3);
+    renderPdfPage(bodyLines);
+
+    const dlLink = document.getElementById('pdfDownloadLink');
+    dlLink.href = currentPdfUrl;
+    dlLink.setAttribute('download', filename);
+    dlLink.dataset.filename = filename;
+
+    document.getElementById('pdfPreview').classList.add('show');
+    document.getElementById('pdfPreview').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    // intento de compartir directo, en un solo toque (sin descargar); si no es posible, queda la vista previa con los botones manuales
+    if (navigator.canShare) {
+      shareOrExplain(currentPdfBlob, filename, 'application/pdf', true);
+    }
+  }catch(err){
+    console.error(err);
+    showToast('Ocurrió un error al generar el PDF');
+  }
+});
+
+document.getElementById('pdfCloseBtn').addEventListener('click', () => {
+  document.getElementById('pdfPreview').classList.remove('show');
+});
+
+document.getElementById('pdfShareBtn').addEventListener('click', async () => {
+  if (!currentPdfBlob) return;
+  await shareOrExplain(currentPdfBlob, document.getElementById('pdfDownloadLink').dataset.filename || 'cuadre_caja.pdf', 'application/pdf');
+});
+
+/* Comparte un archivo con el panel nativo. Si no es posible, solo avisa (salvo modo silencioso) — nunca descarga en automático. */
+async function shareOrExplain(blob, filename, mimeType, silent){
+  const file = new File([blob], filename, { type: mimeType });
+
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try{
+      await navigator.share({ files: [file], title: 'Cuadre de Caja', text: 'Cuadre de caja del día' });
+      return true;
+    }catch(err){
+      if (err.name === 'AbortError') return false; // el usuario canceló, no es un error
+      console.error(err);
+      if (!silent) showToast('No se pudo abrir el panel para compartir en este dispositivo. Usa "Descargar" y compártelo desde tus archivos.');
+      return false;
+    }
+  }
+  if (!silent) showToast('Compartir no está disponible aquí. Usa "Descargar" y compártelo desde tus archivos.');
+  return false;
+}
+
+/* ---------- Imagen (dibujada con Canvas 2D, mismo estilo de tarjetas que el PDF) ---------- */
+let currentImgUrl = null;
+let currentImgBlob = null;
+
+function roundRectPath(ctx, x, y, w, h, r){
+  ctx.beginPath();
+  ctx.moveTo(x+r, y);
+  ctx.arcTo(x+w, y, x+w, y+h, r);
+  ctx.arcTo(x+w, y+h, x, y+h, r);
+  ctx.arcTo(x, y+h, x, y, r);
+  ctx.arcTo(x, y, x+w, y, r);
+  ctx.closePath();
+}
+
+function rgbStr(arr, alpha){
+  return alpha === undefined ? `rgb(${arr[0]},${arr[1]},${arr[2]})` : `rgba(${arr[0]},${arr[1]},${arr[2]},${alpha})`;
+}
+
+function wrapCanvasText(ctx, text, maxWidth){
+  const words = String(text).split(' ');
+  let lines = [], current = '';
+  words.forEach(w => {
+    const test = current ? current + ' ' + w : w;
+    if (ctx.measureText(test).width > maxWidth && current) { lines.push(current); current = w; }
+    else current = test;
+  });
+  if (current) lines.push(current);
+  return lines.length ? lines : [''];
+}
+
+document.getElementById('imgBtn').addEventListener('click', () => {
+  try{
+    // --- datos vigentes (mismos que el PDF) ---
+    const contado = parseFloat(document.getElementById('contado').value) || 0;
+    const cobranza = parseFloat(document.getElementById('cobranza').value) || 0;
+    const rechazosSum = categorySum('rechazos');
+    const neto = contado + cobranza - rechazosSum;
+    const sumCats = categories.reduce((s,c) => s + categorySum(c.key), 0);
+    const subBilletes = denomState.filter(r=>r.tipo==='billete').reduce((s,r)=>s+r.valor*(r.cantidad||0),0);
+    const subMonedas  = denomState.filter(r=>r.tipo==='moneda').reduce((s,r)=>s+r.valor*(r.cantidad||0),0);
+    const diff = (subBilletes + subMonedas + sumCats) - neto;
+    const isBalanced = Math.abs(diff) < 0.01;
+
+    // --- geometría base ---
+    const W = 480, MX = 20, cardW = W - MX*2;
+    const PAD = 14, HEADER_H = 22, ROW_H = 20, GAP = 14, ITEM_LINE_H = 15;
+    const FONT_BODY = '11px Inter, -apple-system, sans-serif';
+    const FONT_BOLD = 'bold 11px Inter, -apple-system, sans-serif';
+    const FONT_TITLE = 'bold 22px "Space Grotesk", ui-monospace, monospace';
+    const FONT_SECTION = 'bold 12px Inter, -apple-system, sans-serif';
+
+    const mctx = document.createElement('canvas').getContext('2d');
+
+    function summaryHeight(rows){ return PAD*2 + HEADER_H + rows.length*ROW_H + 8 + 36; }
+    function simpleHeight(rows){ return PAD*2 + HEADER_H + rows.length*ROW_H; }
+    function categoryData(items, widthForWrap){
+      mctx.font = FONT_BODY;
+      const maxTextW = (widthForWrap !== undefined ? widthForWrap : cardW) - PAD*2 - 80;
+      const rowsData = items.map((it, idx) => ({
+        wrapped: wrapCanvasText(mctx, `${idx+1}. ${it.desc || '(sin descripción)'}`, maxTextW),
+        monto: it.monto || 0,
+      }));
+      const bodyH = items.length ? rowsData.reduce((s,r) => s + Math.max(1,r.wrapped.length)*ITEM_LINE_H, 0) : ITEM_LINE_H;
+      const height = PAD*2 + HEADER_H + 10 + bodyH;
+      return { rowsData, height };
+    }
+    function bigStatHeight(subtextLines){
+      const n = subtextLines ? (Array.isArray(subtextLines) ? subtextLines.length : 1) : 0;
+      return n ? 56 + n*14 : 56;
+    }
+
+    // --- preparar bloques ---
+    const catColGap = 16;
+    const catColW = (cardW - catColGap) / 2;
+    const rechazosItems = listState.rechazos.filter(it => it.desc || it.monto);
+    const rechazosBlock = categoryData(rechazosItems);
+    const catBlocks = categories.map(cat => ({
+      cat, items: listState[cat.key].filter(it => it.desc || it.monto),
+    })).map(b => ({...b, data: categoryData(b.items, catColW)}));
+
+    // agrupar rubros de dos en dos (dos columnas por fila)
+    const catRowPairs = [];
+    for (let i = 0; i < catBlocks.length; i += 2){
+      const a = catBlocks[i], b = catBlocks[i+1] || null;
+      const rowH = Math.max(a.data.height, b ? b.data.height : 0);
+      catRowPairs.push({ a, b, rowH });
+    }
+
+    const summaryRows = [
+      {label:'+ Total reporte bruto', value: contado},
+      {label:'+ Cobranza día', value: cobranza},
+      {label:'− Rechazos', value: rechazosSum},
+    ];
+
+    // --- altura total ---
+    const DENOM_ROW_H = 14, DENOM_COL_HEADER_H = 14, DENOM_SUBGAP = 8, DENOM_FOOTER_H = 20;
+    const denomBilletesCount = denomState.filter(r=>r.tipo==='billete').length;
+    const denomMonedasCount  = denomState.filter(r=>r.tipo==='moneda').length;
+    const denomMaxRows = Math.max(denomBilletesCount, denomMonedasCount);
+    const denomColContentH = DENOM_COL_HEADER_H + denomMaxRows*DENOM_ROW_H + DENOM_SUBGAP + DENOM_ROW_H;
+    const denomTableHeightVal = PAD*2 + HEADER_H + denomColContentH + 10 + DENOM_FOOTER_H;
+
+    const rubroLines2 = [];
+    for (let i = 0; i < categories.length; i += 2){
+      rubroLines2.push(categories.slice(i, i+2).map(c => `${c.label}: ${fmt(categorySum(c.key))}`).join('  ·  '));
+    }
+    const netoLines = ['a', ...rubroLines2, 'b'];
+
+    let totalH = 84; // encabezado (título + fecha + chófer)
+    totalH += summaryHeight(summaryRows) + GAP;
+    totalH += rechazosBlock.height + GAP;
+    totalH += denomTableHeightVal + GAP;
+    catRowPairs.forEach(p => { totalH += p.rowH + GAP; });
+    totalH += bigStatHeight(netoLines) + GAP; // Neto (billetes+monedas, rubros, total general)
+    totalH += bigStatHeight(['a']) + GAP;     // Diferencia (1 línea de estado)
+    totalH += 24; // margen inferior
+
+    // --- crear canvas final ---
+    if (!isFinite(totalH) || totalH <= 0) totalH = 600; // salvaguarda
+    const scale = 2;
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.ceil(W * scale);
+    canvas.height = Math.ceil(totalH * scale);
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('No se pudo obtener el contexto 2D del canvas');
+    ctx.scale(scale, scale);
+
+    // fondo
+    ctx.fillStyle = rgbStr(PDF_COL.bg);
+    ctx.fillRect(0, 0, W, totalH);
+    ctx.fillStyle = rgbStr(PDF_COL.accent);
+    ctx.fillRect(0, 0, W, 5);
+
+    let y = 34;
+    ctx.textAlign = 'left';
+    ctx.fillStyle = rgbStr(PDF_COL.text);
+    ctx.font = FONT_TITLE;
+    ctx.fillText('CUADRE DE CAJA', MX, y);
+    y += 20;
+    ctx.font = FONT_BODY;
+    ctx.fillStyle = rgbStr(PDF_COL.textDim);
+    ctx.fillText(`Fecha de reporte: ${fechaInput.value || '—'}`, MX, y);
+    y += 14;
+    ctx.fillText(`Chófer: ${getChoferNombre() || '—'}`, MX, y);
+    y += 26;
+
+    // tarjeta Resumen del día
+    (function(){
+      const h = summaryHeight(summaryRows);
+      ctx.fillStyle = rgbStr(PDF_COL.white);
+      roundRectPath(ctx, MX, y, cardW, h, 8); ctx.fill();
+      ctx.strokeStyle = rgbStr(PDF_COL.border); ctx.lineWidth = 1;
+      roundRectPath(ctx, MX, y, cardW, h, 8); ctx.stroke();
+
+      ctx.font = FONT_SECTION; ctx.fillStyle = rgbStr(PDF_COL.accent);
+      ctx.fillText('RESUMEN DEL DÍA', MX+PAD, y+PAD+8);
+
+      let ry = y+PAD+HEADER_H+6;
+      ctx.font = FONT_BODY;
+      summaryRows.forEach(r => {
+        ctx.fillStyle = rgbStr(PDF_COL.textDim);
+        ctx.textAlign = 'left';
+        ctx.fillText(r.label, MX+PAD, ry);
+        ctx.fillStyle = rgbStr(PDF_COL.text);
+        ctx.font = FONT_BOLD;
+        ctx.textAlign = 'right';
+        ctx.fillText(fmt(r.value), MX+cardW-PAD, ry);
+        ctx.font = FONT_BODY;
+        ry += ROW_H;
+      });
+
+      ry += 6;
+      ctx.fillStyle = rgbStr(PDF_COL.accentTint);
+      roundRectPath(ctx, MX+PAD-6, ry-14, cardW-(PAD-6)*2, 36, 6); ctx.fill();
+      ctx.font = 'bold 12px Inter, -apple-system, sans-serif';
+      ctx.fillStyle = rgbStr(PDF_COL.accent);
+      ctx.textAlign = 'left';
+      ctx.fillText('= Neto a reportar', MX+PAD, ry+7);
+      ctx.font = 'bold 14px "Space Grotesk", ui-monospace, monospace';
+      ctx.fillStyle = rgbStr(PDF_COL.text);
+      ctx.textAlign = 'right';
+      ctx.fillText(fmt(neto), MX+cardW-PAD, ry+7);
+
+      y += h + GAP;
+    })();
+
+    function drawCategoryCard(title, subtotal, block){
+      const h = block.height;
+      ctx.fillStyle = rgbStr(PDF_COL.white);
+      roundRectPath(ctx, MX, y, cardW, h, 8); ctx.fill();
+      ctx.strokeStyle = rgbStr(PDF_COL.border); ctx.lineWidth = 1;
+      roundRectPath(ctx, MX, y, cardW, h, 8); ctx.stroke();
+
+      ctx.font = FONT_SECTION; ctx.fillStyle = rgbStr(PDF_COL.accent);
+      ctx.textAlign = 'left';
+      ctx.fillText(title, MX+PAD, y+PAD+6);
+      ctx.fillStyle = rgbStr(PDF_COL.text);
+      ctx.textAlign = 'right';
+      ctx.fillText(fmt(subtotal), MX+cardW-PAD, y+PAD+6);
+
+      ctx.strokeStyle = rgbStr(PDF_COL.border);
+      ctx.beginPath();
+      ctx.moveTo(MX+PAD, y+PAD+13);
+      ctx.lineTo(MX+cardW-PAD, y+PAD+13);
+      ctx.stroke();
+
+      let ry = y+PAD+HEADER_H+8;
+      ctx.font = FONT_BODY;
+      if (!block.rowsData.length){
+        ctx.fillStyle = rgbStr(PDF_COL.textDim);
+        ctx.textAlign = 'left';
+        ctx.fillText('Sin registros', MX+PAD, ry);
+      } else {
+        block.rowsData.forEach(r => {
+          const startRy = ry;
+          ctx.fillStyle = rgbStr(PDF_COL.textDim);
+          ctx.textAlign = 'left';
+          r.wrapped.forEach(line => { ctx.fillText(line, MX+PAD, ry); ry += ITEM_LINE_H; });
+          ctx.font = FONT_BOLD;
+          ctx.fillStyle = rgbStr(PDF_COL.text);
+          ctx.textAlign = 'right';
+          ctx.fillText(fmt(r.monto), MX+cardW-PAD, startRy);
+          ctx.font = FONT_BODY;
+        });
+      }
+      y += h + GAP;
+    }
+
+    function drawCategoryCardAt(x, cy, w, h, title, subtotal, rowsData){
+      ctx.fillStyle = rgbStr(PDF_COL.white);
+      roundRectPath(ctx, x, cy, w, h, 8); ctx.fill();
+      ctx.strokeStyle = rgbStr(PDF_COL.border); ctx.lineWidth = 1;
+      roundRectPath(ctx, x, cy, w, h, 8); ctx.stroke();
+
+      ctx.font = FONT_SECTION; ctx.fillStyle = rgbStr(PDF_COL.accent);
+      ctx.textAlign = 'left';
+      ctx.fillText(title, x+PAD, cy+PAD+6);
+      ctx.fillStyle = rgbStr(PDF_COL.text);
+      ctx.textAlign = 'right';
+      ctx.fillText(fmt(subtotal), x+w-PAD, cy+PAD+6);
+
+      ctx.strokeStyle = rgbStr(PDF_COL.border);
+      ctx.beginPath();
+      ctx.moveTo(x+PAD, cy+PAD+13);
+      ctx.lineTo(x+w-PAD, cy+PAD+13);
+      ctx.stroke();
+
+      let ry = cy+PAD+HEADER_H+8;
+      ctx.font = FONT_BODY;
+      if (!rowsData.length){
+        ctx.fillStyle = rgbStr(PDF_COL.textDim);
+        ctx.textAlign = 'left';
+        ctx.fillText('Sin registros', x+PAD, ry);
+      } else {
+        rowsData.forEach(r => {
+          const startRy = ry;
+          ctx.fillStyle = rgbStr(PDF_COL.textDim);
+          ctx.textAlign = 'left';
+          r.wrapped.forEach(line => { ctx.fillText(line, x+PAD, ry); ry += ITEM_LINE_H; });
+          ctx.font = FONT_BOLD;
+          ctx.fillStyle = rgbStr(PDF_COL.text);
+          ctx.textAlign = 'right';
+          ctx.fillText(fmt(r.monto), x+w-PAD, startRy);
+          ctx.font = FONT_BODY;
+        });
+      }
+    }
+
+    drawCategoryCard('− RECHAZOS', rechazosSum, rechazosBlock);
+
+    // tarjeta Denominaciones (detalle completo, en dos columnas, sin signo de moneda)
+    (function(){
+      const DROW_H = 14, COL_HEADER_H = 14, SUBGAP = 8, FOOTER_H = 20, COL_GAP = 16;
+      const billetes = denomState.filter(r => r.tipo === 'billete');
+      const monedas  = denomState.filter(r => r.tipo === 'moneda');
+      const maxRows = Math.max(billetes.length, monedas.length);
+      const colContentH = COL_HEADER_H + maxRows*DROW_H + SUBGAP + DROW_H;
+      const h = PAD*2 + HEADER_H + colContentH + 10 + FOOTER_H;
+
+      ctx.fillStyle = rgbStr(PDF_COL.white);
+      roundRectPath(ctx, MX, y, cardW, h, 8); ctx.fill();
+      ctx.strokeStyle = rgbStr(PDF_COL.border); ctx.lineWidth = 1;
+      roundRectPath(ctx, MX, y, cardW, h, 8); ctx.stroke();
+
+      ctx.font = FONT_SECTION; ctx.fillStyle = rgbStr(PDF_COL.accent);
+      ctx.textAlign = 'left';
+      ctx.fillText('DENOMINACIONES', MX+PAD, y+PAD+6);
+
+      const colW = (cardW - PAD*2 - COL_GAP) / 2;
+      const leftX = MX+PAD, rightX = MX+PAD+colW+COL_GAP;
+      const colTop = y+PAD+HEADER_H;
+
+      function numStr(v){ return v % 1 === 0 ? v.toFixed(0) : v.toFixed(2); } // sin signo de moneda
+
+      function drawColumn(items, subtotal, label, colX){
+        ctx.font = FONT_BOLD; ctx.fillStyle = rgbStr(PDF_COL.textDim);
+        ctx.textAlign = 'left';
+        ctx.fillText(label, colX, colTop);
+
+        let ry = colTop + COL_HEADER_H;
+        items.forEach(r => {
+          ctx.font = FONT_BODY; ctx.fillStyle = rgbStr(PDF_COL.textDim);
+          ctx.textAlign = 'left';
+          ctx.fillText(`${numStr(r.valor)}  ×  ${r.cantidad || 0}`, colX, ry);
+          ctx.font = FONT_BOLD; ctx.fillStyle = rgbStr(PDF_COL.text);
+          ctx.textAlign = 'right';
+          ctx.fillText(numStr(r.valor*(r.cantidad||0)), colX+colW, ry);
+          ry += DROW_H;
+        });
+
+        const subY = colTop + COL_HEADER_H + maxRows*DROW_H + SUBGAP;
+        ctx.strokeStyle = rgbStr(PDF_COL.border);
+        ctx.beginPath(); ctx.moveTo(colX, subY-10); ctx.lineTo(colX+colW, subY-10); ctx.stroke();
+        ctx.font = FONT_BOLD; ctx.fillStyle = rgbStr(PDF_COL.accent);
+        ctx.textAlign = 'left';
+        ctx.fillText('Subtotal', colX, subY);
+        ctx.textAlign = 'right';
+        ctx.fillText(numStr(subtotal), colX+colW, subY);
+      }
+
+      drawColumn(billetes, subBilletes, 'BILLETES', leftX);
+      drawColumn(monedas, subMonedas, 'MONEDAS', rightX);
+
+      const footerY = colTop + colContentH + 16;
+      ctx.strokeStyle = rgbStr(PDF_COL.border);
+      ctx.beginPath(); ctx.moveTo(MX+PAD, footerY-14); ctx.lineTo(MX+cardW-PAD, footerY-14); ctx.stroke();
+      ctx.font = 'bold 11px Inter, -apple-system, sans-serif'; ctx.fillStyle = rgbStr(PDF_COL.text);
+      ctx.textAlign = 'left';
+      ctx.fillText('Total billetes más monedas', MX+PAD, footerY);
+      ctx.textAlign = 'right';
+      ctx.fillText(numStr(subBilletes+subMonedas), MX+cardW-PAD, footerY);
+      ctx.textAlign = 'left';
+
+      y += h + GAP;
+    })();
+
+    catRowPairs.forEach(p => {
+      const rowY = y;
+      drawCategoryCardAt(MX, rowY, catColW, p.rowH, `${p.a.cat.sign} ${p.a.cat.label.toUpperCase()}`, categorySum(p.a.cat.key), p.a.data.rowsData);
+      if (p.b){
+        drawCategoryCardAt(MX+catColW+catColGap, rowY, catColW, p.rowH, `${p.b.cat.sign} ${p.b.cat.label.toUpperCase()}`, categorySum(p.b.cat.key), p.b.data.rowsData);
+      }
+      y += p.rowH + GAP;
+    });
+
+    function drawBigStat(label, valueText, rgb, tintRgb, subtextLines){
+      const lines = subtextLines ? (Array.isArray(subtextLines) ? subtextLines : [subtextLines]) : [];
+      const h = bigStatHeight(lines);
+      ctx.fillStyle = rgbStr(tintRgb);
+      roundRectPath(ctx, MX, y, cardW, h, 10); ctx.fill();
+      ctx.strokeStyle = rgbStr(rgb); ctx.lineWidth = 1.2;
+      roundRectPath(ctx, MX, y, cardW, h, 10); ctx.stroke();
+
+      ctx.textAlign = 'center';
+      ctx.font = 'bold 10px Inter, -apple-system, sans-serif';
+      ctx.fillStyle = rgbStr(rgb);
+      ctx.fillText(label.toUpperCase(), MX+cardW/2, y+22);
+      ctx.font = 'bold 20px "Space Grotesk", ui-monospace, monospace';
+      ctx.fillStyle = rgbStr(PDF_COL.text);
+      ctx.fillText(valueText, MX+cardW/2, y+44);
+      if (lines.length){
+        ctx.font = '10px Inter, -apple-system, sans-serif';
+        ctx.fillStyle = rgbStr(rgb);
+        let sy = y+62;
+        lines.forEach(l => { ctx.fillText(l, MX+cardW/2, sy); sy += 14; });
+      }
+      ctx.textAlign = 'left';
+      y += h + GAP;
+    }
+
+    drawBigStat('Neto a reportar', fmt(neto), PDF_COL.accent, PDF_COL.accentTint, [
+      `Billetes+monedas: ${fmt(subBilletes+subMonedas)}`,
+      ...rubroLines2,
+      `Total general: ${fmt(subBilletes+subMonedas+sumCats)}`,
+    ]);
+    const diffRgb = isBalanced ? PDF_COL.positive : PDF_COL.accent;
+    const diffTint = isBalanced ? PDF_COL.positiveTint : PDF_COL.accentTint;
+    const diffStatus = isBalanced ? 'Cuadra' : (diff > 0 ? 'Sobra sustento' : 'Falta sustentar');
+    drawBigStat('Diferencia', fmt(diff), diffRgb, diffTint, diffStatus);
+
+    // --- salida: usar toDataURL (síncrono, más compatible) y derivar el blob para compartir/descargar ---
+    let dataUrl;
+    try {
+      dataUrl = canvas.toDataURL('image/png');
+    } catch (e) {
+      throw new Error('No se pudo exportar el canvas a imagen: ' + e.message);
+    }
+    if (!dataUrl || dataUrl === 'data:,') {
+      throw new Error('El canvas generó una imagen vacía');
+    }
+
+    const fecha = fechaInput.value || 'sin_fecha';
+    const filename = `cuadre_caja_${fecha}.png`;
+
+    const imgEl = document.getElementById('imgPreviewImg');
+    imgEl.onload = () => {
+      document.getElementById('imgPreview').classList.add('show');
+      document.getElementById('imgPreview').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+    imgEl.onerror = () => {
+      showToast('No se pudo mostrar la vista previa de la imagen');
+    };
+    imgEl.src = dataUrl;
+
+    const dlLink = document.getElementById('imgDownloadLink');
+    dlLink.href = dataUrl;
+    dlLink.setAttribute('download', filename);
+    dlLink.dataset.filename = filename;
+
+    // derivar el Blob (para compartir con Web Share API) a partir del dataURL
+    fetch(dataUrl).then(r => r.blob()).then(blob => {
+      currentImgBlob = blob;
+      // intento de compartir directo, en un solo toque (sin descargar)
+      if (navigator.canShare) {
+        shareOrExplain(blob, filename, 'image/png', true);
+      }
+    }).catch(() => { currentImgBlob = null; });
+
+  }catch(err){
+    console.error(err);
+    showToast('Error al generar imagen: ' + (err && err.message ? err.message : 'desconocido'));
+  }
+});
+
+document.getElementById('imgCloseBtn').addEventListener('click', () => {
+  document.getElementById('imgPreview').classList.remove('show');
+});
+
+document.getElementById('imgShareBtn').addEventListener('click', async () => {
+  if (!currentImgBlob) return;
+  await shareOrExplain(currentImgBlob, document.getElementById('imgDownloadLink').dataset.filename || 'cuadre_caja.png', 'image/png');
+});
+
+/* ---------- Copy summary ---------- */
+document.getElementById('copyBtn').addEventListener('click', () => {
+  const text = buildReportLines().join('\n');
+  navigator.clipboard.writeText(text).then(() => {
+    showToast('Resumen copiado');
+  }).catch(() => {
+    showToast('No se pudo copiar');
+  });
+});
+
+/* ---------- Reset (confirmación de doble toque; los diálogos nativos confirm() pueden estar bloqueados) ---------- */
+const resetBtn = document.getElementById('resetBtn');
+let resetConfirmTimeout = null;
+const resetBtnOriginalText = resetBtn.textContent;
+
+resetBtn.addEventListener('click', () => {
+  if (resetBtn.dataset.confirming === 'true') {
+    clearTimeout(resetConfirmTimeout);
+    resetBtn.dataset.confirming = 'false';
+    resetBtn.textContent = resetBtnOriginalText;
+
+    denomState.forEach(r => r.cantidad = 0);
+    document.getElementById('contado').value = '';
+    document.getElementById('cobranza').value = '';
+    allListKeys.forEach(cat => { listState[cat.key] = [{desc:'', monto:null}]; renderList(cat.key); });
+    renderDenom();
+    choferSelect.value = '';
+    choferOtroInput.value = '';
+    choferOtroRow.style.display = 'none';
+    fechaInput.valueAsDate = new Date();
+    try{ localStorage.removeItem(STORAGE_KEY); }catch(e){}
+    recalc();
+    checkRequired();
+    showToast('Cuadre reiniciado');
+  } else {
+    resetBtn.dataset.confirming = 'true';
+    resetBtn.textContent = 'Toca de nuevo para confirmar';
+    resetConfirmTimeout = setTimeout(() => {
+      resetBtn.dataset.confirming = 'false';
+      resetBtn.textContent = resetBtnOriginalText;
+    }, 3000);
+  }
+});
+
+/* ---------- Init ---------- */
+renderDenom();
+recalc();
+if (choferSelect.value === '__otros__') choferOtroRow.style.display = '';
+checkRequired();
+</script>
+</body>
+</html>
